@@ -1,13 +1,37 @@
-on: push
-name: Update develop branch on push to main
+name: Merge Main into develop
+
+on:
+  push:
+    branches:
+      - 'main'
+
 jobs:
-  updateBranch:
-    name: Update develop branch
+  main:
+    name: Create PR Main to Develop
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: Embraser01/update-git-branch-action@v1.0.0
-      if: github.ref == 'refs/heads/master'
-      with:
-        branch: develop
-        githubToken: ${{ secrets.PAT_TOKEN }} # Github Token
+      - name: git checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+      # https://github.com/marketplace/actions/github-pull-request-action
+      - name: create pull request
+        id: open-pr
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          destination_branch: develop
+          pr_title: "[Automated] Merge ${{ github.event.repository.default_branch }} into develop"
+          pr_body: "Automated Pull Request"
+          pr_reviewer: "adri-basterra"
+          pr_assignee: "adri-basterra"
+
+      # https://github.com/marketplace/actions/enable-pull-request-automerge
+      - name: enable automerge
+        if: steps.open-pr.outputs.pr_number != ''
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+          pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
+          merge-method: merge
