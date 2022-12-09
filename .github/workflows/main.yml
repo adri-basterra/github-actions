@@ -28,6 +28,5 @@ jobs:
       - name: enable automerge
         uses: peter-evans/enable-pull-request-automerge@v2
         with:
-          if: steps.open-pr.outputs.pr_number != ''
-          pull-request-number: ${{ steps.open-pr.outputs.pr_number }}
+          pull-request-number: 1
           merge-method: merge
